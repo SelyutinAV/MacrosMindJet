@@ -1,0 +1,126 @@
+'#Language "WWB-COM"
+
+Option Explicit
+
+
+Sub Main
+  Dim level As Integer   'current depth of map, level 1=maintopic
+  Dim doc As Document	 'document being exported
+  Dim f As String		 'filename of destination text file
+  Dim atopic As Topic	 'main topic variable
+  '
+  Debug.Clear
+  Set doc=ActiveDocument
+  level=0
+  f=GetPath(mmDirectoryMyMaps)&"wiki.txt" 'write output to wiki.txt in default directory
+  Open f For Output As #1
+  Print #1, Chr(39)&Chr(39)&Chr(39) & doc.CentralTopic.Text &Chr(39) & Chr(39) & Chr(39) &Chr(13)&Chr(10); 'use centraltopic as title
+  'Add notes below using notes2wiki procedure
+  note2wiki doc.CentralTopic
+  For Each atopic In doc.CentralTopic.AllSubTopics
+   writeit level, atopic   'call main subroutine
+  Next
+  Close #1
+  Shell("notepad.exe "&f,1)';} 'display result in notepad for pasting into wiki
+End Sub
+Sub writeit(slevel As Integer, atopic As Topic)
+   Dim level As Integer
+   Dim stopic As Topic
+   Dim slevelstr As String
+   Dim elevelstr As String
+   'set outline level one deeper.
+   level=slevel+1
+   slevelstr=slevelstrfun(level)
+   If InStr(slevelstr,"=")>0 Then
+     elevelstr=slevelstr
+   Else
+      elevelstr=""
+   End If
+   If atopic.HasHyperlink Then
+     If InStr(atopic.Hyperlink.Address,"http") Then
+        'add external link
+        Print #1, slevelstr & Chr(91) & atopic.Hyperlink.Address & " " & atopic.Text & Chr(93) & elevelstr
+     Else
+        'reference another wiki page -- need to match title
+        Print #1, slevelstr &Chr(91) & Chr(91) & atopic.Text & Chr(93) & Chr(93) & elevelstr
+     End If
+   Else
+     Print #1, slevelstr & atopic.Text & elevelstr
+   End If
+   'add notes
+   note2wiki atopic
+   'recursively follow subtopics
+   If atopic.AllSubTopics.Count>0 Then
+     For Each stopic In atopic.AllSubTopics
+        writeit level,stopic
+     Next
+   End If
+End Sub
+Sub note2wiki(ntopic As Topic)
+Dim notetext As String
+Dim usehtml As Boolean
+'convert the html markup in the note into wiki format in order to recover hyperlinks
+usehtml=False
+If usehtml Then
+	notetext=ntopic.Notes.TextXHTML
+	notetext=Replace(notetext,"<!DOCTYPE html PUBLIC "&Chr(34)&"-//W3C//DTD XHTML 1.0 Transitional//EN"&Chr(34)&Chr(13)&Chr(10),"")
+	notetext=Replace(notetext,"<html  xmlns="&Chr(34)&"http://www.w3.org/1999/xhtml"&Chr(34)&">","")
+	notetext=Replace(notetext,"          "&Chr(34)&"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&Chr(34)&">"&Chr(13)&Chr(10),"")
+	notetext=Replace(notetext,"</html>","")
+	notetext=Replace(notetext,"<span>","")
+	notetext=Replace(notetext,"</span>","")
+	notetext=Replace(notetext,"<p>","")
+	notetext=Replace(notetext,"</p>","")
+	notetext=Replace(notetext,"<a href="&Chr(34)," [")
+	notetext=Replace(notetext,Chr(34)&">"," ")
+	notetext=Replace(notetext,"</a>","]")
+	notetext=Replace(notetext,"<br />","")
+	notetext=Replace(notetext,Chr(13)&Chr(10)&Chr(13)&Chr(10),Chr(13)&Chr(10))
+Else
+   notetext=ntopic.Notes.Text
+End If
+Print #1, notetext
+End Sub
+Function slevelstrfun(level As Integer) As String
+  Dim s As String
+  Dim i As Integer
+  Dim sectiondepthstart As Integer
+  Dim sectiondepthend As Integer
+  Dim numberdepthstart As Integer
+  Dim numberdepthend As Integer
+  Dim bulletdepthstart As Integer
+  Dim bulletdepthend As Integer
+
+  s=""
+  sectiondepthstart	=1
+  sectiondepthend  	=3
+  numberdepthstart 	=0
+  numberdepthend	=0
+  bulletdepthstart	=4
+  bulletdepthend	=50
+ For i=1 To level
+    If level>=sectiondepthstart And level<=sectiondepthend Then
+       If  i=sectiondepthstart Then
+       Debug.Print "start main"
+          s="="
+        ElseIf i>sectiondepthstart Then
+          s=s & "="
+        End If
+    End If
+    If level>=numberdepthstart And level<=numberdepthend  Then
+       If i=numberdepthstart Then
+	       s="#"
+	   ElseIf i>numberdepthstart Then
+	       s=s & "#"
+	   End If
+    End If
+    If level>=bulletdepthstart And level<=bulletdepthend Then
+       If i=bulletdepthstart Then
+	       s="*"
+	   ElseIf i>bulletdepthstart Then
+	       s=s & "*"
+	   End If
+    End If
+ Next
+ slevelstrfun=s
+End Function

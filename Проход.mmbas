@@ -1,0 +1,25 @@
+'#Language "WWB-COM"
+
+Option Explicit
+
+Sub Main
+	'ao_pct_done 09-Dec-07 http://www.activityowner.com
+
+	Dim t As Topic
+	Dim tot As Integer
+	Dim done As Decimal
+
+
+
+	For Each t In ActiveDocument.Range(mmRangeAllTopics)
+		If Not t.Task.IsEmpty Then
+			tot=tot+1
+			If t.Task.IsDone Or t.Icons.HasStockIcon(mmStockIconCheck) Then
+				done=done+1
+			ElseIf t.Task.Complete>0 Then
+				done = done+t.Task.Complete/100
+			End If
+		End If
+	Next
+	MsgBox(Str(Round(100*done/tot)) & " percent of " & tot & " tasks done")
+End Sub

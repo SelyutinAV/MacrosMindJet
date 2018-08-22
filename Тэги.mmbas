@@ -1,0 +1,76 @@
+Sub Main
+    Dim m_Icon As Icon
+    For Each m_Icon In ActiveDocument.Selection.PrimaryTopic.Icons
+        Debug.Print m_Icon.Name
+    Next
+    Dim m_Tag As TextLabel
+    Dim g_Tag As MapMarker
+
+
+    Set FSO = CreateObject("scripting.filesystemobject")
+
+    Filename$ =  GetPath(mmDirectoryMyMaps)&"тест.txt"
+    ' создаём файл в кодировке Unicode
+    Set ts = FSO.CreateTextFile(Filename$, True, True)
+
+	ts.WriteLine ActiveDocument.Selection.PrimaryTopic.TopicLabel
+
+	Debug.Clear
+
+
+	Debug.Print ActiveDocument.MapMarkerGroups.Count
+	Set n = ActiveDocument.MapMarkerGroups.Count
+
+	For i=1 To n
+        Debug.Print ActiveDocument.MapMarkerGroups.Item(i).Name
+        Debug.Print ActiveDocument.MapMarkerGroups.Item(i).GroupId
+        Debug.Print i
+        ts.WriteLine Trim(ActiveDocument.MapMarkerGroups.Item(i).Name)
+    Next i
+
+
+
+
+    ts.WriteLine Trim("---------------")
+
+	n = ActiveDocument.Selection.PrimaryTopic.TextLabels.Count - 1
+
+    Dim lists()
+    ReDim lists(n)
+	i = 0
+	For Each m_Tag In ActiveDocument.Selection.PrimaryTopic.TextLabels
+        Debug.Print m_Tag.Name
+        ts.WriteLine Trim(m_Tag.Name)
+        lists(i) = m_Tag.Name
+        i = i+1
+    Next
+
+	 Begin Dialog UserDialog 200,120
+        Text 10,10,180,15,"Please push the OK button"
+        MultiListBox 10,25,180,60,lists(),.list
+        OKButton 80,90,40,20
+    End Dialog
+    Dim dlg As UserDialog
+    Dim selects(2) As Integer
+    selects(0) = 0
+    selects(2) = 2
+    dlg.list = selects
+    Dialog dlg ' show dialog (wait for ok)
+
+    For i = LBound(dlg.list) To UBound(dlg.list)
+        Debug.Print dlg.list(i);
+    Next i
+    Debug.Print
+
+
+
+
+    ts.Close
+
+    Set ts = Nothing: Set FSO = Nothing
+
+    ' открываем папку с файлами
+    CreateObject("wscript.shell").Run "explorer.exe /e, """ & Filename$ & """"
+
+    Wait
+End Sub

@@ -1,0 +1,93 @@
+Sub Main
+    Dim m_Icon As Icon
+    For Each m_Icon In ActiveDocument.Selection.PrimaryTopic.Icons
+        Debug.Print m_Icon.Name
+    Next
+    Dim m_Tag As TextLabel
+    Dim g_Tag As MapMarker
+
+
+    Set FSO = CreateObject("scripting.filesystemobject")
+
+    Filename$ =  GetPath(mmDirectoryMyMaps)&"тест.txt"
+    ' создаём файл в кодировке Unicode
+    Set ts = FSO.CreateTextFile(Filename$, True, True)
+
+	ts.WriteLine ActiveDocument.Selection.PrimaryTopic.TopicLabel
+
+	Debug.Clear
+
+
+	Debug.Print ActiveDocument.MapMarkerGroups.Count
+	Set n = ActiveDocument.MapMarkerGroups.Count
+
+	For i=1 To n
+        Debug.Print ActiveDocument.MapMarkerGroups.Item(i).Name
+        Debug.Print ActiveDocument.MapMarkerGroups.Item(i).GroupId
+        Debug.Print i
+        ts.WriteLine Trim(ActiveDocument.MapMarkerGroups.Item(i).Name)
+    Next i
+
+    ts.WriteLine Trim("---------------")
+
+    Set n = ActiveDocument.MapMarkerGroups.Item(12).Count
+
+	For i=1 To n
+        Debug.Print ActiveDocument.MapMarkerGroups.Item(12).Item(i).Label
+        Debug.Print ActiveDocument.MapMarkerGroups.Item(12).Item(i).Type
+        ts.WriteLine Trim(ActiveDocument.MapMarkerGroups.Item(12).Item(i).Label)
+    Next
+
+
+
+    ts.WriteLine Trim("---------------")
+
+	Dim lists()
+
+	If ActiveDocument.Selection.PrimaryTopic.TextLabels.Count > 0 Then
+
+		n = ActiveDocument.Selection.PrimaryTopic.TextLabels.Count - 1
+
+		ReDim lists(n)
+
+		For i = 0 To n-1
+        	Debug.Print m_Tag.Name
+        	Debug.Print m_Tag.GroupId
+        	Debug.Print m_Tag.IsValid
+        	ts.WriteLine Trim(m_Tag.Name)
+        	lists(i) = m_Tag.Name
+    	Next i
+
+    End If
+
+
+
+	 Begin Dialog UserDialog 400,800
+        Text 10,10,180,15,"Please push the OK button"
+        MultiListBox 10,25,300,740,lists(),.list
+        OKButton 80,780,40,20
+    End Dialog
+    Dim dlg As UserDialog
+    Dim selects(2) As Integer
+    selects(0) = 0
+    selects(2) = 2
+    dlg.list = selects
+    Dialog dlg ' show dialog (wait for ok)
+
+    For i = LBound(dlg.list) To UBound(dlg.list)
+        Debug.Print dlg.list(i);
+    Next i
+    Debug.Print
+
+
+
+
+    ts.Close
+
+    Set ts = Nothing: Set FSO = Nothing
+
+    ' открываем папку с файлами
+    CreateObject("wscript.shell").Run "explorer.exe /e, """ & Filename$ & """"
+
+    Wait
+End Sub

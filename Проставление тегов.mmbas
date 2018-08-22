@@ -1,0 +1,104 @@
+Sub Main
+
+	Set hText = 14
+
+	Dim combos()
+	Dim lists()
+	Dim txt(6) As String
+	Dim selects() As Integer
+	Dim m_Tag As TextLabel
+
+	Debug.Clear
+
+	Debug.Print ActiveDocument.Selection.PrimaryTopic.Text
+
+	Set cMMG = ActiveDocument.MapMarkerGroups.Count
+
+	ReDim combos(cMMG)
+
+	For i=1 To cMMG
+		combos(i) = ActiveDocument.MapMarkerGroups.Item(i).Name
+    Next i
+
+    Begin Dialog UserDialog 400,60+hText*cMMG
+        Text 10,10,380,15,"Выбирите маркер для проставления"
+        ComboBox 10,25,380,hText*cMMG,combos(),.combo
+        OKButton 80,30+hText*cMMG,40,20
+    End Dialog
+    Dim dlg1 As UserDialog
+	'dlg1.combo = "Подсистемы"
+    Dialog dlg1 ' show dialog (wait for ok)
+    Debug.Print dlg1.combo
+
+    Debug.Print Trim("---------------")
+
+	For i=1 To cMMG
+		If dlg1.combo = ActiveDocument.MapMarkerGroups.Item(i).Name Then
+			posMG = i
+		End If
+    Next i
+
+    Set cSMMG = ActiveDocument.MapMarkerGroups.Item(posMG).Count
+
+    If cSMMG > 0 Then
+
+		ReDim lists(cSMMG)
+		ReDim selects(cSMMG)
+
+
+		For i=1 To cSMMG
+			lists(i) = ActiveDocument.MapMarkerGroups.Item(posMG).Item(i).Label
+			If ActiveDocument.Selection.PrimaryTopic.TextLabels.ContainsTextLabel(lists(i)) Then
+				selects(i) = i
+			End If
+	    Next
+
+
+		Set lvl = ActiveDocument.Selection.PrimaryTopic.Level
+
+	    For i = LBound(txt) To UBound(txt)
+	        txt(i) = ""
+	    Next i
+
+		Call SetTxt(lvl, ActiveDocument.Selection.PrimaryTopic, txt)
+
+		Begin Dialog UserDialog 1400,335+(hText-1)*cSMMG
+	        Text 10,10,1380,15,"Нацпрограмма",.Lablel1, 2
+	        Text 10,30,1380,15, txt(1)
+	        Text 10,50,1380,15,"Направление",.Lablel2, 2
+	        Text 10,70,1380,15, txt(2)
+	        Text 10,90,1380,15,"Задача",.Lablel3, 2
+	        Text 10,110,1380,45, txt(3)
+	        Text 10,160,1380,15,"Мероприятие",.Lablel4, 2
+	        Text 10,180,1380,45, txt(4)
+	        Text 10,230,1380,15,"Показатель",.Lablel5, 2
+	        Text 10,250,1380,30, txt(5)
+	        Text 10,285,1380,15,"-----------",.Lablel6, 2
+	        Text 10,305,1380,20, txt(6)
+
+	        MultiListBox 10,330,1380,(hText-1)*cSMMG-45,lists(),.list
+	        OKButton 380,305+(hText-1)*cSMMG,40,20
+	    End Dialog
+
+	    Dim dlg As UserDialog
+	    dlg.list = selects
+	    Dialog dlg ' show dialog (wait for ok)
+
+	    For i = LBound(dlg.list) To UBound(dlg.list)
+	        Debug.Print dlg.list(i);
+	    Next i
+	    Debug.Print
+	Else
+	    Debug.Print "Нет объектов"
+	End If
+
+
+End Sub
+
+Public Sub SetTxt(level As Integer, curTopic As Topic, ByRef txt() As String )
+	If level > 1 Then
+		Debug.Print curTopic.Text
+		SetTxt(level-1, curTopic.ParentTopic, txt)
+	End If
+	txt(level)= curTopic.Text
+End Sub
