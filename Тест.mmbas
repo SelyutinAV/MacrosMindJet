@@ -5,7 +5,6 @@ Sub Main
 	Dim t As Topic
 	Dim tt As Topics
 
-	Dim arrGuid() As String
 
 
 
@@ -13,14 +12,21 @@ Sub Main
 
 Debug.Print ActiveDocument.Selection.PrimaryTopic.Guid
 
+	Dim arrGuid() As String
+
+Erase arrGuid
 ReDim arrGuid(ActiveDocument.Range(mmRangeAllTopics).Count)
 
 
 	For Each t In ActiveDocument.Range(mmRangeAllTopics)
 		If t.Text = ActiveDocument.Selection.PrimaryTopic.Text Then
 			tot=tot+1
+			arrGuid(tot) = t.Guid
 		End If
 	Next
+	    For i = 1 To tot
+	    	Debug.Print ActiveDocument.Range(mmRangeAllTopics).FindByGuid(Trim(arrGuid(i))).IsValid
+	    Next i
 
 Debug.Print "!!!"&tot
 

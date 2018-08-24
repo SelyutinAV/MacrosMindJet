@@ -92,7 +92,7 @@ Sub Main
 	    Next
 
 '------- Выводим диалог
-		Begin Dialog UserDialog 1400,560,.DialogFunc
+		Begin Dialog UserDialog 1400,560 ',.DialogFunc
 	        Text 10,10,130,15,"Нацпрограмма:",.Lablel1, 0
 	        Text 150,10,540,15, txt(1)
 	        Text 10,30,130,15,"Направление",.Lablel2, 0
@@ -125,16 +125,22 @@ Sub Main
 	    Next i
 
 '--------- Делаем тоже для всех таких нод
+Debug.Print "TOT="&tot
 		If tot > 1 Then
-			For i = LBound(arrGuid) To tot
+			For i = 1 To tot
 	    		Debug.Print arrGuid(i)
 
-				tRepl = ActiveDocument.Range(mmRangeAllTopics).FindByGuid(arrGuid(i))
-				ClearTagByGroupId(tRepl,gid)
-				For j = LBound(dlg.list) To UBound(dlg.list)
-		    		tName = Trim(lists(dlg.list(j)))
-		        	tRepl.TextLabels.AddTextLabel(tName)
-		    	Next j
+				For Each tRepl In ActiveDocument.Range(mmRangeAllTopics).FindByGuid(Trim(arrGuid(i)))
+					tRepl.IsValid
+
+				Next
+
+'					ClearTagByGroupId(tRepl,gid)
+'					For j = LBound(dlg.list) To UBound(dlg.list)
+'		    			tName = Trim(lists(dlg.list(j)))
+'		        		tRepl.TextLabels.AddTextLabel(tName)
+'		    		Next j
+'		    	Next
    			Next i
 		End If
 

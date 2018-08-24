@@ -1,98 +1,118 @@
 Sub Main
 
+	Set hText = 14
+
+	Debug.Clear
+	Dim curTopic, tRepl As Topic
+
+	Dim combos()
+	Dim txt() As String
+	Dim selects() As Integer
+	Dim lists() As String
+
+	Dim tLab As TextLabel
+
+
+	Dim arrGuid() As String
+
+	Dim tagGroupName, tName As String
+
+	Dim f As String		 'filename of destination text file
+
 
 	Debug.Clear
 
-    Dim m_Icon As Icon
-    For Each m_Icon In ActiveDocument.Selection.PrimaryTopic.Icons
-        Debug.Print m_Icon.Name
-		Debug.Print m_Icon.StockIcon
-		Debug.Print "-----------"
-    Next
-    Dim m_Tag As TextLabel
-    Dim g_Tag As MapMarker
+	Set doc=ActiveDocument
 
+  	level=0
+  	f=GetPath(mmDirectoryMyMaps)&"wiki.csv" 'write output to wiki.txt in default directory
+	Open f For Output As #1
 
-    Set FSO = CreateObject("scripting.filesystemobject")
+  Print  #1, "Нацпрограмма;Направление;Задача;Мероприятие;Инструмент;Тэг;Поле1;Поле2" 'use centraltopic as title
 
-    Filename$ =  GetPath(mmDirectoryMyMaps)&"тест.txt"
-    ' создаЮм файл в кодировке Unicode
-    Set ts = FSO.CreateTextFile(Filename$, True, True)
-
-	ts.WriteLine ActiveDocument.Selection.PrimaryTopic.TopicLabel
-
-
-
-	Debug.Print ActiveDocument.MapMarkerGroups.Count
-	Set n = ActiveDocument.MapMarkerGroups.Count
-
-	For i=1 To n
-        Debug.Print ActiveDocument.MapMarkerGroups.Item(i).Name
-        Debug.Print ActiveDocument.MapMarkerGroups.Item(i).GroupId
-        Debug.Print i
-        ts.WriteLine Trim(ActiveDocument.MapMarkerGroups.Item(i).Name)
+'------ Находим все группы тегов в документе и предлагаем выбрать группу для заполнения
+	Set cMMG = ActiveDocument.MapMarkerGroups.Count
+	ReDim combos(cMMG)
+	For i=1 To cMMG
+		combos(i) = ActiveDocument.MapMarkerGroups.Item(i).Name
     Next i
-
-    ts.WriteLine Trim("---------------")
-
-    Set n = ActiveDocument.MapMarkerGroups.Item(12).Count
-
-	For i=1 To n
-        Debug.Print ActiveDocument.MapMarkerGroups.Item(12).Item(i).Label
-        Debug.Print ActiveDocument.MapMarkerGroups.Item(12).Item(i).Type
-        ts.WriteLine Trim(ActiveDocument.MapMarkerGroups.Item(12).Item(i).Label)
-    Next
-
-
-
-    ts.WriteLine Trim("---------------")
-
-	Dim lists()
-
-	If ActiveDocument.Selection.PrimaryTopic.TextLabels.Count > 0 Then
-
-		n = ActiveDocument.Selection.PrimaryTopic.TextLabels.Count - 1
-
-		ReDim lists(n)
-
-		For i = 0 To n-1
-        	Debug.Print m_Tag.Name
-        	Debug.Print m_Tag.GroupId
-        	Debug.Print m_Tag.IsValid
-        	ts.WriteLine Trim(m_Tag.Name)
-        	lists(i) = m_Tag.Name
-    	Next i
-
-    End If
-
-
-
-	 Begin Dialog UserDialog 400,800
-        Text 10,10,180,15,"Please push the OK button"
-        MultiListBox 10,25,300,740,lists(),.list
-        OKButton 80,780,40,20
+    Begin Dialog UserDialog 400,60+hText*cMMG
+        Text 10,10,380,15,"Выбирите маркер для проставления"
+        ComboBox 10,25,380,hText*cMMG,combos(),.combo
+        OKButton 80,30+hText*cMMG,40,20
     End Dialog
-    Dim dlg As UserDialog
-    Dim selects(2) As Integer
-    selects(0) = 0
-    selects(2) = 2
-    dlg.list = selects
-    Dialog dlg ' show dialog (wait for ok)
+    Dim dlg1 As UserDialog
+	'dlg1.combo = "Подсистемы"
+    Dialog dlg1 ' show dialog (wait for ok)
+    Debug.Print dlg1.combo
 
-    For i = LBound(dlg.list) To UBound(dlg.list)
-        Debug.Print dlg.list(i);
+    tagGroupName = dlg1.combo
+
+'------ Находим выбранную группу тегов
+	For i=1 To cMMG
+		If dlg1.combo = ActiveDocument.MapMarkerGroups.Item(i).Name Then
+			posMG = i
+			Set gID =ActiveDocument.MapMarkerGroups.Item(i).GroupId
+		End If
     Next i
-    Debug.Print
+
+    Set cSMMG = ActiveDocument.MapMarkerGroups.Item(posMG).Count
+	If cSMMG > 0 Then
+		ReDim lists(cSMMG)
+		For i=1 To cSMMG
+			lists(i) = ActiveDocument.MapMarkerGroups.Item(posMG).Item(i).Label
+	    Next
+	Else
+	    Debug.Print "Нет объектов"
+	End If
 
 
+	ReDim selects(cSMMG) ' Делаем размер массива для выбранных уже тегов равный размеру самого списка тегов
 
+	For Each curTopic In ActiveDocument.Range(mmRangeAllTopics)
 
-    ts.Close
+'-------- У выбранного топика берем его иерархию и заполняем массив txt для диалогового окна - массив его иерархии
+		Set lvl = curTopic.Level
 
-    Set ts = Nothing: Set FSO = Nothing
+		Erase txt()
+		ReDim txt(lvl)
 
-    ' открываем папку с файлами
-    CreateObject("wscript.shell").Run "explorer.exe /e, """ & Filename$ & """"
+		Call SetTxt(lvl, curTopic, txt)
 
-    Wait
+		Str = ""
+		For i=1 To 5
+			If i>lvl Then
+				Str = Str+";"
+			Else
+				Str = Str+txt(i)&";"
+			End If
+		Next
+
+		cTag = False
+		Print  #1, Str
+
+'-------- У выбранного топика берем его теги и заполняем массив для отметки уже выбранных тегов
+		For Each tLab In curTopic.TextLabels
+			If inArr(lists, tLab.Name) Then
+
+				Print  #1, Str&tLab.Name
+			End If
+	    Next
+
+	Next
+
+	Close #1
+  	Shell("notepad.exe "&f,1)';} 'display result in notepad for pasting into wiki
+
 End Sub
+Public Sub SetTxt(level As Integer, curTopic As Topic, ByRef txt() As String )
+	If level > 1 Then
+		Debug.Print curTopic.Text
+		SetTxt(level-1, curTopic.ParentTopic, txt)
+	End If
+	txt(level)= curTopic.Text
+End Sub
+Function inArr( sArray() As String, sFind As String) As Boolean
+    s = Join(sArray, "|")
+    inArr = InStr(1, s, sFind)
+End Function
