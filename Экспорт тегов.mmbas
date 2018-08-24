@@ -1,7 +1,13 @@
 Sub Main
+
+
+	Debug.Clear
+
     Dim m_Icon As Icon
     For Each m_Icon In ActiveDocument.Selection.PrimaryTopic.Icons
         Debug.Print m_Icon.Name
+		Debug.Print m_Icon.StockIcon
+		Debug.Print "-----------"
     Next
     Dim m_Tag As TextLabel
     Dim g_Tag As MapMarker
@@ -15,7 +21,6 @@ Sub Main
 
 	ts.WriteLine ActiveDocument.Selection.PrimaryTopic.TopicLabel
 
-	Debug.Clear
 
 
 	Debug.Print ActiveDocument.MapMarkerGroups.Count
