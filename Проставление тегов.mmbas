@@ -92,24 +92,26 @@ Sub Main
 	    Next
 
 '------- Выводим диалог
-		Begin Dialog UserDialog 1400,560 ',.DialogFunc
-	        Text 10,10,130,15,"Нацпрограмма:",.Lablel1, 0
-	        Text 150,10,540,15, txt(1)
-	        Text 10,30,130,15,"Направление",.Lablel2, 0
-	        Text 150,30,540,65, txt(2)
-	        Text 10,100,130,15,"Задача",.Lablel3, 0
-	        Text 150,100,540,85, txt(3)
-	        Text 10,190,130,15,"Мероприятие",.Lablel4, 0
-	        Text 150,190,540,65, txt(4)
-	        Text 10,260,130,15,"Показатель",.Lablel5, 0
-	        Text 150,260,540,65, txt(5)
 
-	        Text 10,330,450,15,"Надено "&tot&" одноименных топиков"
 
-	        MultiListBox 710,10,680,510,lists(),.list
-	        OKButton 680,530,40,20
-	    	PushButton 10,530,100,20,"&Copy From"
-	    End Dialog
+	Begin Dialog UserDialog 1400,700 ',.DialogFunc %GRID:10,7,1,1
+		Text 10,10,130,15,"Нацпрограмма:",.Lablel1
+		Text 150,10,540,15,txt(1)
+		Text 10,30,130,15,"Направление",.Lablel2
+		Text 150,30,540,65,txt(2)
+		Text 10,100,130,15,"Задача",.Lablel3
+		Text 150,100,540,85,txt(3)
+		Text 10,190,130,15,"Мероприятие",.Lablel4
+		Text 150,190,540,65,txt(4)
+		Text 10,260,130,15,"Показатель",.Lablel5
+		Text 150,260,540,65,txt(5)
+
+		Text 10,330,450,15,"Надено "&tot&" одноименных топиков"
+
+		MultiListBox 710,7,680,637,lists(),.list
+		OKButton 680,665,40,21
+		PushButton 550,665,100,21,"&Copy From"
+	End Dialog
 
 	    Dim dlg As UserDialog
 	    dlg.list = selects
@@ -126,14 +128,14 @@ Sub Main
 
 '--------- Делаем тоже для всех таких нод
 Debug.Print "TOT="&tot
-		If tot > 1 Then
-			For i = 1 To tot
-	    		Debug.Print arrGuid(i)
+'		If tot > 1 Then
+'			For i = 1 To tot
+'	    		Debug.Print arrGuid(i)
 
-				For Each tRepl In ActiveDocument.Range(mmRangeAllTopics).FindByGuid(Trim(arrGuid(i)))
-					tRepl.IsValid
+'				For Each tRepl In ActiveDocument.Range(mmRangeAllTopics).FindByGuid(Trim(arrGuid(i)))
+'					tRepl.IsValid
 
-				Next
+'				Next
 
 '					ClearTagByGroupId(tRepl,gid)
 '					For j = LBound(dlg.list) To UBound(dlg.list)
@@ -141,8 +143,8 @@ Debug.Print "TOT="&tot
 '		        		tRepl.TextLabels.AddTextLabel(tName)
 '		    		Next j
 '		    	Next
-   			Next i
-		End If
+'   			Next i
+'		End If
 
 	Next
 
