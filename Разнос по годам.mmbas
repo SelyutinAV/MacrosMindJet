@@ -6,10 +6,15 @@ Sub Main
 	Dim tt As Topic
 	Dim ttt As Topic
 	Dim Strn As String
+	Dim tl As TextLabel
 
 	Dim txt() As String
 
-	Set yr=6
+	Dim yr () As String
+	Dim schem () As String
+
+	yr = Split("2019;2020;2021;2022;2023;2024", ";")
+	schem = Split("30/70;10/60/30;50/50;30/30/40;100", ";")
 
 	Set lExport = 5
 	Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2019;2020;2021;2022;2023;2024"
@@ -24,6 +29,19 @@ Sub Main
 '	For Each t In ActiveDocument.Range(mmRangeAllTopics)
 		Set t = ActiveDocument.Selection.PrimaryTopic
 
+	For Each tl In t.TextLabels
+
+		If inArr(yr, tl.Name) Then
+		Debug.Print tl.GroupId
+		Debug.Print tl.Name
+		End If
+		If inArr(schem, tl.Name) Then
+		Debug.Print tl.GroupId
+		Debug.Print tl.Name
+		End If
+	Next
+
+
 		lvl = t.Level
 
 		Erase txt()
@@ -33,16 +51,12 @@ Sub Main
 
 		Strn = "53"
 		For i=1 To lExport
-		Debug.Print txt(i)
 			If i>lvl Then
 				Strn += ";"
 			Else
 				Strn += txt(i)&";"
 			End If
 		Next
-
-		Debug.Print txt(1)
-
 
 		sum = 0
 		sums = 0
@@ -60,7 +74,8 @@ Sub Main
 				End If
 				t.TextLabels.AddTextLabel("Разнес")
 			Next
-			Print  #1, Strn & sum & ";" & sums 'use centraltopic as title
+'			Print  #1, Strn & sum & ";" & sums
+			Print  #1, sum & ";" & sums
 		End If
 
 '	Next
@@ -79,3 +94,7 @@ Public Sub SetTxt(level As Integer, curTopic As Topic, ByRef txt() As String )
 	End If
 	txt(level)= curTopic.Text
 End Sub
+Function inArr( sArray() As String, sFind As String) As Boolean
+    s = Join(sArray, "|")
+    inArr = InStr(1, s, sFind)
+End Function
