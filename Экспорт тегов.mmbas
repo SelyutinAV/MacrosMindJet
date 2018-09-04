@@ -1,13 +1,14 @@
 Sub Main
 
 	Set hText = 14
+	Set lExport = 7
+	Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;Работа;Сумма;Тип затрат"
 
 	Debug.Clear
 	Dim curTopic, tRepl As Topic
 
 	Dim combos()
 	Dim txt() As String
-	Dim selects() As Integer
 	Dim lists() As String
 
 	Dim tLab As TextLabel
@@ -28,7 +29,7 @@ Sub Main
   	f=GetPath(mmDirectoryMyMaps)&"wiki.csv" 'write output to wiki.txt in default directory
 	Open f For Output As #1
 
-  Print  #1, "Нацпрограмма;Направление;Задача;Мероприятие;Инструмент;Тэг;Поле1;Поле2" 'use centraltopic as title
+  	Print  #1, hString 'use centraltopic as title
 
 '------ Находим все группы тегов в документе и предлагаем выбрать группу для заполнения
 	Set cMMG = ActiveDocument.MapMarkerGroups.Count
@@ -37,7 +38,7 @@ Sub Main
 		combos(i) = ActiveDocument.MapMarkerGroups.Item(i).Name
     Next i
     Begin Dialog UserDialog 400,60+hText*cMMG
-        Text 10,10,380,15,"Выбирите маркер для проставления"
+        Text 10,10,380,15,"Выбирите теги для экспорта"
         ComboBox 10,25,380,hText*cMMG,combos(),.combo
         OKButton 80,30+hText*cMMG,40,20
     End Dialog
@@ -67,38 +68,39 @@ Sub Main
 	End If
 
 
-	ReDim selects(cSMMG) ' Делаем размер массива для выбранных уже тегов равный размеру самого списка тегов
-
 	For Each curTopic In ActiveDocument.Range(mmRangeAllTopics)
 
 '-------- У выбранного топика берем его иерархию и заполняем массив txt для диалогового окна - массив его иерархии
 		Set lvl = curTopic.Level
 
-		Erase txt()
-		ReDim txt(lvl)
+		If lvl = lExport Then
+			Debug.Print lvl
 
-		Call SetTxt(lvl, curTopic, txt)
+			Erase txt()
+			ReDim txt(lvl)
 
-		Str = ""
-		For i=1 To 5
-			If i>lvl Then
-				Str = Str+";"
-			Else
-				Str = Str+txt(i)&";"
-			End If
-		Next
+			Call SetTxt(lvl, curTopic, txt)
 
-		cTag = False
-		Print  #1, Str
+			Str = ""
+			For i=1 To lExport
+				If i>lvl Then
+					Str = Str+";"
+				Else
+					Str = Str+txt(i)&";"
+				End If
+			Next
 
-'-------- У выбранного топика берем его теги и заполняем массив для отметки уже выбранных тегов
-		For Each tLab In curTopic.TextLabels
-			If inArr(lists, tLab.Name) Then
+			cTag = False
+'			Print  #1, Str
 
-				Print  #1, Str&tLab.Name
-			End If
-	    Next
+	'-------- У выбранного топика (стоимости) берем его родителя и его теги и заполняем массив для отметки уже выбранных тегов
+			For Each tLab In curTopic.ParentTopic.TextLabels
+				If inArr(lists, tLab.Name) Then
 
+					Print  #1, Str&tLab.Name
+				End If
+		    Next
+		End If
 	Next
 
 	Close #1

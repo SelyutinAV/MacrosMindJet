@@ -1,0 +1,81 @@
+
+Sub Main
+	Debug.Clear
+
+	Dim t As Topic
+	Dim tt As Topic
+	Dim ttt As Topic
+	Dim Strn As String
+
+	Dim txt() As String
+
+	Set yr=6
+
+	Set lExport = 5
+	Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2019;2020;2021;2022;2023;2024"
+
+	Set tlchange="Эксплуатация"
+	Set mnozh=2
+
+  	f=GetPath(mmDirectoryMyMaps)&"wiki.csv" 'write output to wiki.txt in default directory
+	Open f For Output As #1
+  	Print  #1, hString 'use centraltopic as title
+
+'	For Each t In ActiveDocument.Range(mmRangeAllTopics)
+		Set t = ActiveDocument.Selection.PrimaryTopic
+
+		lvl = t.Level
+
+		Erase txt()
+		ReDim txt(lvl)
+
+		Call SetTxt(lvl, t, txt)
+
+		Strn = "53"
+		For i=1 To lExport
+		Debug.Print txt(i)
+			If i>lvl Then
+				Strn += ";"
+			Else
+				Strn += txt(i)&";"
+			End If
+		Next
+
+		Debug.Print txt(1)
+
+
+		sum = 0
+		sums = 0
+		Debug.Print t.Level
+		If t.Level=lExport Then
+			For Each tt In t.AllSubTopics
+				If tt.TextLabels.ContainsTextLabel(tlchange) Then
+					For Each ttt In tt.AllSubTopics
+						sums+=CLng(ttt.Text)
+					Next
+				Else
+					For Each ttt In tt.AllSubTopics
+						sum+=CLng(ttt.Text)
+					Next
+				End If
+				t.TextLabels.AddTextLabel("Разнес")
+			Next
+			Print  #1, Strn & sum & ";" & sums 'use centraltopic as title
+		End If
+
+'	Next
+
+	Close #1
+  	Shell("notepad.exe "&f,1)';} 'display result in notepad for pasting into wiki
+
+
+
+
+End Sub
+
+Public Sub SetTxt(level As Integer, curTopic As Topic, ByRef txt() As String )
+	If level > 1 Then
+		SetTxt(level-1, curTopic.ParentTopic, txt)
+	End If
+	txt(level)= curTopic.Text
+End Sub
