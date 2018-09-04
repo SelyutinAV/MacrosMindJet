@@ -5,6 +5,7 @@ Sub Main
 	Dim t As Topic
 	Dim tt As Topic
 	Dim ttt As Topic
+
 	Dim Strn As String
 	Dim tl As TextLabel
 
@@ -13,43 +14,47 @@ Sub Main
 	Dim yr () As String
 	Dim schem () As String
 
-	yr = Split("2019;2020;2021;2022;2023;2024", ";")
-	schem = Split("30/70;10/60/30;50/50;30/30/40;100", ";")
+	Dim model_s () As String
+
+	Dim capex_year (2019 To 2024) As Integer
+	Dim sum_year   (2019 To 2024) As Double
+
+	years = Split("2019;2020;2021;2022;2023;2024", ";")
+	schem = Split("30/70;10/60/30;50/50;30/30/40;100;10/18/18/18/18/18;70/10/5/5/5/5", ";")
 
 	Set lExport = 5
 	Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2019;2020;2021;2022;2023;2024"
 
-	Set tlchange="Эксплуатация"
-	Set mnozh=2
+	Set tl_opex="Эксплуатация"
+	Set tl_fot="ФОТ"
 
   	f=GetPath(mmDirectoryMyMaps)&"wiki.csv" 'write output to wiki.txt in default directory
 	Open f For Output As #1
   	Print  #1, hString 'use centraltopic as title
 
-'	For Each t In ActiveDocument.Range(mmRangeAllTopics)
-		Set t = ActiveDocument.Selection.PrimaryTopic
+	For Each t In ActiveDocument.Range(mmRangeAllTopics)
+'		Set t = ActiveDocument.Selection.PrimaryTopic
 
-	For Each tl In t.TextLabels
-
-		If inArr(yr, tl.Name) Then
-		Debug.Print tl.GroupId
-		Debug.Print tl.Name
-		End If
-		If inArr(schem, tl.Name) Then
-		Debug.Print tl.GroupId
-		Debug.Print tl.Name
-		End If
-	Next
+		Erase model_s()
+		model_count= 0
+		For Each tl In t.TextLabels
+			If inArr(years, tl.Name) Then
+				g=CInt(tl.Name) 	'Получаем год окончания реализации
+			End If
+			If inArr(schem, tl.Name) Then
+				model_s = Split(tl.Name, "/") 'Получаем модель расчета строкой и заполняем массив строк
+				model_count= UBound(model_s)+1 'Смотрим, на сколько лет рассчитана модель
+			End If
+		Next
 
 
 		lvl = t.Level
 
+		' Получаем название мероприятия
 		Erase txt()
 		ReDim txt(lvl)
-
 		Call SetTxt(lvl, t, txt)
-
-		Strn = "53"
+		Strn = ""
 		For i=1 To lExport
 			If i>lvl Then
 				Strn += ";"
@@ -58,27 +63,66 @@ Sub Main
 			End If
 		Next
 
-		sum = 0
-		sums = 0
-		Debug.Print t.Level
-		If t.Level=lExport Then
-			For Each tt In t.AllSubTopics
-				If tt.TextLabels.ContainsTextLabel(tlchange) Then
+		sum_opex = 0
+		sum_fot = 0
+		sum_capex = 0
+
+		If t.Level=lExport  Then
+
+			'Заполняем модель рассчета числами по годам
+			j=0
+			For i=2019 To 2024
+				If i>=g-model_count+1 And i<=g Then
+					Debug.Print j&" "&model_s(j)
+					capex_year(i)=CInt(model_s(j))
+					j+=1
+				ElseIf i>g Then
+					capex_year(i)=0
+				Else
+					capex_year(i)=0
+				End If
+			Next
+
+			For Each tt In t.AllSubTopics    'Считаем ФОТ, капексы и опексы
+
+				If tt.TextLabels.ContainsTextLabel(tl_opex) Then
 					For Each ttt In tt.AllSubTopics
-						sums+=CLng(ttt.Text)
+						sum_opex+=CLng(ttt.Text)
+					Next
+				ElseIf tt.TextLabels.ContainsTextLabel(tl_fot) Then
+					For Each ttt In tt.AllSubTopics
+						sum_fot+=CLng(ttt.Text)
 					Next
 				Else
 					For Each ttt In tt.AllSubTopics
-						sum+=CLng(ttt.Text)
+						sum_capex+=CLng(ttt.Text)
 					Next
 				End If
-				t.TextLabels.AddTextLabel("Разнес")
+'				t.TextLabels.AddTextLabel("Разнес")
 			Next
+
+			For i=2019 To 2024
+				If i>=g-model_count+1 Then
+					If i>g Then
+						sum_year(i)=sum_fot + sum_opex
+					Else
+						sum_year(i) = sum_fot + capex_year(i)*sum_capex/100
+					End If
+				Else
+					sum_year(i) = 0
+				End If
+			Next
+
+			sum_by_year = ""
+			For i=2019 To 2024
+				sum_by_year += CStr(sum_year(i))&";"
+			Next
+
 '			Print  #1, Strn & sum & ";" & sums
-			Print  #1, sum & ";" & sums
+			Print  #1, Strn &  sum_by_year
 		End If
 
-'	Next
+	Next
 
 	Close #1
   	Shell("notepad.exe "&f,1)';} 'display result in notepad for pasting into wiki
