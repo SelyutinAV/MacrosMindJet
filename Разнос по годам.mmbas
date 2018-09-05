@@ -121,7 +121,7 @@ Sub Main
 				sum_by_year += CStr(sum_year(i))&";"
 			Next
 
-			ErrSum = sum_total < sum_capex + sum_opex + sum_fot
+			ErrSum = (sum_total < sum_capex + sum_opex + sum_fot And g<>2024) Or (g=2024 And sum_total < sum_capex + model_count * sum_fot)
 
 			Print  #1, Strn &  sum_by_year & g & ";" & model_str & ";" & sum_capex & ";" & sum_opex & ";" & sum_fot & ";" & sum_total  & ";" & ErrSum
 		End If
