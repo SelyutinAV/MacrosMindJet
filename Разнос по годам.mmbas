@@ -23,7 +23,7 @@ Sub Main
 	schem = Split("70/30;30/70;10/60/30;50/50;30/30/40;100;10/18/18/18/18/18;70/10/5/5/5/5", ";")
 
 	Set lExport = 5
-Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2019;2020;2021;2022;2023;2024;Год окончания;Модель;CAPEX;OPEX;ФОТ"
+	Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2019;2020;2021;2022;2023;2024;Год окончания;Модель;CAPEX;OPEX;ФОТ;Итого за 6 лет;Ошибка"
 
 	Set tl_opex="Эксплуатация"
 	Set tl_fot="ФОТ"
@@ -37,6 +37,7 @@ Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2
 
 		Erase model_s()
 		model_count= 0
+		model_str=""
 		For Each tl In t.TextLabels
 			If inArr(years, tl.Name) Then
 				g=CInt(tl.Name) 	'Получаем год окончания реализации
@@ -47,7 +48,6 @@ Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2
 				model_count= UBound(model_s)+1 'Смотрим, на сколько лет рассчитана модель
 			End If
 		Next
-
 
 		lvl = t.Level
 
@@ -102,6 +102,7 @@ Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2
 '				t.TextLabels.AddTextLabel("Разнес")
 			Next
 
+			sum_total=0
 			For i=2019 To 2024
 				If i>=g-model_count+1 Then
 					If i>g Then
@@ -112,6 +113,7 @@ Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2
 				Else
 					sum_year(i) = 0
 				End If
+				sum_total += sum_year(i)
 			Next
 
 			sum_by_year = ""
@@ -119,8 +121,9 @@ Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2
 				sum_by_year += CStr(sum_year(i))&";"
 			Next
 
-'			Print  #1, Strn & sum & ";" & sums
-			Print  #1, Strn &  sum_by_year & g & ";" & model_str & ";" & sum_capex & ";" & sum_opex & ";" & sum_fot
+			ErrSum = sum_total < sum_capex + sum_opex + sum_fot
+
+			Print  #1, Strn &  sum_by_year & g & ";" & model_str & ";" & sum_capex & ";" & sum_opex & ";" & sum_fot & ";" & sum_total  & ";" & ErrSum
 		End If
 
 	Next
