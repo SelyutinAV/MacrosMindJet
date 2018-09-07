@@ -95,6 +95,7 @@ Sub Main
 						sum_fot+=CLng(ttt.Text)
 					Next
 				Else
+					Debug.Print Strn
 					For Each ttt In tt.AllSubTopics
 						sum_capex+=CLng(ttt.Text)
 					Next
