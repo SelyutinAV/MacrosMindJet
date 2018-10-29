@@ -22,8 +22,8 @@ Sub Main
 	years = Split("2019;2020;2021;2022;2023;2024", ";")
 	schem = Split("70/30;30/70;10/60/30;50/50;30/30/40;100;10/18/18/18/18/18;70/10/5/5/5/5", ";")
 
-	Set lExport = 5
-	Set hString = "Подпрограмма;Направление;Задача;Основеое мероприятие;Инструмент;2019;2020;2021;2022;2023;2024;Год окончания;Модель;CAPEX;OPEX;ФОТ;Итого за 6 лет;Ошибка"
+	Set lExport = 6
+	Set hString = "Подпрограмма;Направление;Задача;Основное ммероприятие;Мероприятие;Работа(показатель);2019;2020;2021;2022;2023;2024;Год начала;Год окончания;Модель;CAPEX;OPEX;ФОТ;Итого за 6 лет;Ошибка"
 
 	Set tl_opex="Эксплуатация"
 	Set tl_fot="ФОТ"
@@ -122,9 +122,16 @@ Sub Main
 				sum_by_year += CStr(sum_year(i))&";"
 			Next
 
+			Set cyear = 0
+			Set possep = InStr(model_str, "/")
+			Do While possep <> 0
+				cyear += 1
+				possep = InStr(possep+1, model_str, "/")
+			Loop
+
 			ErrSum = (sum_total < sum_capex + sum_opex + sum_fot And g<>2024) Or (g=2024 And sum_total < sum_capex + model_count * sum_fot)
 
-			Print  #1, Strn &  sum_by_year & g & ";" & model_str & ";" & sum_capex & ";" & sum_opex & ";" & sum_fot & ";" & sum_total  & ";" & ErrSum
+			Print  #1, Strn &  sum_by_year & g-cyear & ";" &  g & ";" & model_str & ";" & sum_capex & ";" & sum_opex & ";" & sum_fot & ";" & sum_total  & ";" & ErrSum
 		End If
 
 	Next

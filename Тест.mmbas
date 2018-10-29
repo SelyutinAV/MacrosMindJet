@@ -5,7 +5,7 @@ Sub Main
 	Dim t As Topic
 	Dim tt As Topics
 
-
+ActiveDocument.Selection.PrimaryTopic.Notes.Insert(ActiveDocument.Selection.PrimaryTopic.Text)
 
 
 ' право - 37, верх - 36, низ - 66, лево - 65, во - 46

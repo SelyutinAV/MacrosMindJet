@@ -1,0 +1,16 @@
+Sub Main
+
+	Dim curTopic As Topic
+
+'------ Ќаходим все группы тегов в документе и предлагаем выбрать группу дл€ заполнени€
+
+'------ Ќаходим выбранную группу тегов
+
+
+	For Each curTopic In ActiveDocument.Range(mmRangeAllTopics)
+		curTopic.Notes.Insert(curTopic.Text)
+	Next
+
+'-------- ” выбранного топика берем его иерархию и заполн€ем массив txt дл€ диалогового окна - массив его иерархии
+
+End Sub
